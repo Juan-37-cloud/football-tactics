@@ -1,0 +1,1273 @@
+/* 足球战术解析 · 站点样式
+   复古足球海报风：奶油纸底 + 墨线稿 + 砖红印章 + 硬边阴影
+   支持浅色 / 深色两种主题，球场与图层配色统一走 CSS 变量 */
+
+:root {
+  color-scheme: light dark;
+
+  --page: #efe2c6;
+  --surface: #f9f1dd;
+  --surface-2: #eaddbb;
+  --text: #2a2119;
+  --muted: #6d5a3f;
+  --border: #cbb488;
+  --accent: #b8391f;
+  --accent-soft: #f0d3b4;
+  --header-bg: rgba(239, 226, 198, 0.9);
+  --paper-dot: rgba(42, 33, 25, 0.055);
+  --paper-glow: rgba(255, 252, 240, 0.55);
+  --bg-photo: url("bg.webp");
+  --bg-photo-opacity: 0.28;
+  --bg-photo-blend: soft-light;
+  --vignette: rgba(74, 48, 18, 0.18);
+
+  --pitch: #2d6a48;
+  --pitch-stripe: rgba(255, 255, 255, 0.06);
+  --line: #f6ecd6;
+  --dot: #f6ecd6;
+  --dot-ring: rgba(16, 30, 20, 0.55);
+  --dot-text: #1d2a1f;
+  --role-text: #fdf6e6;
+
+  --pitch-label: #f6ecd6;
+  --pitch-label-home: #cbdff1;
+  --pitch-label-away: #f0ddc4;
+  --pitch-label-halo: rgba(8, 38, 24, 0.3);
+  --pitch-label-font: "Noto Serif SC", "Source Han Serif SC", "STZhongsong",
+    "STSong", "SimSun", serif;
+  --font-display: var(--pitch-label-font);
+
+  --tone-att: #ef8b16;
+  --tone-def: #33a6d6;
+  /* 线路色：偏青白，与橙色（人的跑动）在色相上拉开距离 */
+  --tone-lane: #b6ecdc;
+  /* 箭头暗边：让橙/蓝箭头压在草皮和白色划线上都读得清 */
+  --arrow-rim: rgba(8, 30, 20, 0.34);
+  --board-home: #f6ecd6;
+  --board-away: #e8b23a;
+
+  --radius: 4px;
+  --radius-sm: 3px;
+  /* 复古印刷：硬边偏移阴影，不用模糊 */
+  --shadow: 6px 6px 0 rgba(42, 33, 25, 0.13);
+  --shadow-sm: 3px 3px 0 rgba(42, 33, 25, 0.16);
+  --wrap: 1180px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #171310;
+    --surface: #221b15;
+    --surface-2: #2b231b;
+    --text: #f0e2c8;
+    --muted: #b39a76;
+    --border: #4c3d2c;
+    --accent: #e0603f;
+    --accent-soft: #3a2418;
+    --header-bg: rgba(23, 19, 16, 0.9);
+    --paper-dot: rgba(240, 226, 200, 0.05);
+    --paper-glow: rgba(132, 84, 40, 0.16);
+    --bg-photo-opacity: 0.14;
+    --bg-photo-blend: luminosity;
+    --vignette: rgba(0, 0, 0, 0.42);
+
+    --pitch: #1f4a34;
+    --pitch-stripe: rgba(255, 255, 255, 0.05);
+    --line: #efe0c4;
+    --dot: #efe0c4;
+    --dot-ring: rgba(0, 0, 0, 0.5);
+    --dot-text: #101d14;
+    --role-text: #fdf6e6;
+
+    --pitch-label: #efe0c4;
+    --pitch-label-home: #b9d2e6;
+    --pitch-label-away: #e6cfa8;
+    --pitch-label-halo: rgba(0, 14, 7, 0.4);
+
+    --tone-att: #f3a02a;
+    --tone-def: #5cc0e8;
+    --tone-lane: #9fe8d4;
+    --arrow-rim: rgba(2, 14, 9, 0.45);
+    --board-home: #efe0c4;
+    --board-away: #e8b23a;
+    --shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+    --shadow-sm: 3px 3px 0 rgba(0, 0, 0, 0.5);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background-color: var(--page);
+  background-image:
+    radial-gradient(circle at 50% 50%, var(--paper-dot) 0.9px, transparent 1.1px),
+    radial-gradient(120% 70% at 50% 0%, var(--paper-glow), transparent 58%);
+  background-size: 4px 4px, 100% 560px;
+  background-repeat: repeat, no-repeat;
+  color: var(--text);
+  font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 素材照片：低透明融合为底色，浅色更柔和，暗色降低权重以保证可读性 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--bg-photo);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--bg-photo-opacity);
+  mix-blend-mode: var(--bg-photo-blend);
+}
+
+h1, h2, h3 {
+  line-height: 1.25;
+  margin: 0;
+  font-family: var(--font-display);
+  letter-spacing: 0.015em;
+}
+
+/* 复古印刷：四角压暗，模拟纸张与油墨的旧质感 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: radial-gradient(118% 96% at 50% 44%, transparent 56%, var(--vignette) 100%);
+}
+
+a { color: var(--accent); }
+
+.wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 20;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  text-decoration: none;
+}
+
+.skip-link:focus { left: 0; }
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- 头部 ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--text);
+}
+
+/* 海报式双线页眉：粗墨线之下再压一条砖红细线 */
+.site-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 66px;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-mark {
+  width: 38px; height: 38px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--accent);
+  color: #f9f1dd;
+  border: 2px solid var(--text);
+  box-shadow: 3px 3px 0 rgba(42, 33, 25, 0.2);
+  padding: 6px;
+}
+
+.brand-name { margin: 0; font-weight: 700; letter-spacing: 0.1em; }
+.brand-sub { margin: 0; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.16em; }
+
+.site-nav { display: flex; gap: 4px; }
+
+.site-nav a {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 7px 12px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+}
+
+.site-nav a:hover {
+  background: var(--surface);
+  border-color: var(--text);
+  box-shadow: 2px 2px 0 var(--border);
+}
+
+/* ---------- 首屏 ---------- */
+
+/* 首屏主视觉 */
+
+.hero {
+  position: relative;
+  padding: 46px 20px 26px;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -140px auto auto -120px;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background-image: radial-gradient(circle, rgba(184, 57, 31, 0.26) 1.5px, transparent 1.7px);
+  background-size: 10px 10px;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000, transparent 68%);
+  mask-image: radial-gradient(circle at 50% 50%, #000, transparent 68%);
+  pointer-events: none;
+}
+
+.hero > * { position: relative; z-index: 1; }
+
+.hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-mark {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 3px;
+  border: 2px solid var(--text);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0 6px, transparent 6px 12px),
+    var(--accent);
+  box-shadow: 4px 4px 0 rgba(42, 33, 25, 0.22);
+}
+
+.hero-mark svg { width: 66%; height: 66%; }
+
+.hero-mark-frame {
+  fill: none;
+  stroke: rgba(249, 241, 221, 0.95);
+  stroke-width: 2;
+}
+
+.hero-mark-line {
+  fill: none;
+  stroke: rgba(249, 241, 221, 0.45);
+  stroke-width: 1.4;
+}
+
+.hero-mark-run {
+  fill: none;
+  stroke: #f6e3ae;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: 5 4;
+  animation: hero-run 1.8s linear infinite;
+}
+
+.hero-mark-tip {
+  fill: #f6e3ae;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-tip 1.8s ease-in-out infinite;
+}
+
+.hero-brand-copy { min-width: 0; }
+
+.hero-kicker {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.hero-title { font-size: clamp(1.9rem, 4.4vw, 2.9rem); letter-spacing: -0.01em; }
+
+.hero-wordmark {
+  margin: 8px 0 0;
+  font-size: clamp(2.5rem, 6.4vw, 4.1rem);
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text);
+  -webkit-text-fill-color: currentColor;
+  padding-bottom: 6px;
+  /* 印刷套色偏移：墨字带一层砖红副版 */
+  text-shadow: 3px 3px 0 var(--accent);
+}
+
+.hero-rule {
+  display: block;
+  width: 136px;
+  height: 9px;
+  margin-top: 16px;
+  border-radius: 0;
+  background: repeating-linear-gradient(90deg, var(--accent) 0 16px, transparent 16px 24px);
+}
+
+/* 标题后素材：绝对定位铺满首屏，文字下方更淡、文字外更清晰，最边缘淡出到纸面 */
+.hero-photo {
+  --hero-photo-opacity: 0.52;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: url("hero-material.webp") 20% 16% / cover no-repeat;
+  opacity: var(--hero-photo-opacity);
+  filter: sepia(0.18);
+  -webkit-mask-image: radial-gradient(circle at 20% 16%, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 22%, #000 48%, rgba(0, 0, 0, 0.72) 78%, transparent 100%);
+  mask-image: radial-gradient(circle at 20% 16%, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 22%, #000 48%, rgba(0, 0, 0, 0.72) 78%, transparent 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .hero-photo {
+    --hero-photo-opacity: 0.4;
+    filter: sepia(0.25) brightness(0.82);
+  }
+}
+
+.hero-lead {
+  max-width: 62ch;
+  margin: 18px 0 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  font-size: 1.02rem;
+}
+
+@keyframes hero-run { to { stroke-dashoffset: -18; } }
+
+@keyframes hero-tip {
+  0%, 100% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mark-run,
+  .hero-mark-tip { animation: none; }
+}
+
+.hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+}
+
+.hero-stats li {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 2px;
+  padding: 7px 16px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  box-shadow: 2px 2px 0 rgba(42, 33, 25, 0.12);
+}
+
+.hero-stats strong { color: var(--accent); font-size: 1.06rem; }
+
+/* ---------- 通用面板 ---------- */
+
+section { padding: 30px 0 12px; }
+
+.section-title {
+  position: relative;
+  padding-left: 16px;
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  letter-spacing: 0.04em;
+}
+
+/* 章节标题前的砖红色块，像海报上的栏目章 */
+.section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.16em;
+  bottom: 0.16em;
+  width: 6px;
+  background: var(--accent);
+}
+
+.section-hint { margin: 8px 0 18px; color: var(--muted); max-width: 66ch; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--text);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.studio-grid { display: grid; gap: 16px; }
+
+@media (min-width: 1040px) {
+  .studio-grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+  .controls { grid-column: 1 / -1; }
+  .pitch-card { grid-column: 1; }
+  .brief { grid-column: 2; }
+}
+
+.controls { display: grid; gap: 16px; }
+
+@media (min-width: 760px) {
+  .controls { grid-template-columns: 1fr 1fr; }
+  .controls .control--layers { grid-column: 1 / -1; }
+}
+
+.control-label {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.chip {
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 7px 14px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.chip:hover {
+  border-color: var(--text);
+  background: var(--surface);
+  box-shadow: 2px 2px 0 var(--border);
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--text);
+  color: #fdf3dd;
+  font-weight: 600;
+  box-shadow: 2px 2px 0 rgba(42, 33, 25, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  .chip[aria-pressed="true"] { color: #1a0f08; }
+}
+
+.toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface-2);
+  cursor: pointer;
+}
+
+.toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+.control-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+
+.button {
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 2px;
+  border: 2px solid var(--text);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(42, 33, 25, 0.16);
+  transition: transform 120ms ease, box-shadow 120ms ease, color 160ms ease,
+    border-color 160ms ease;
+}
+
+.button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 rgba(42, 33, 25, 0.18);
+}
+
+/* 按下时像盖章一样压平 */
+.button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.hint { margin: 0; font-size: 0.8rem; color: var(--muted); }
+
+/* ---------- 球场 ---------- */
+
+.pitch-card { padding: 12px; }
+
+.pitch-figure { margin: 0; }
+
+#pitch, #pitch-a, #pitch-b, #board-pitch {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--text);
+  overflow: hidden;
+}
+
+.pitch-caption {
+  margin: 10px 4px 2px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ---------- 球场旁的速查图例（完整图例见页末「图例」） ---------- */
+
+.pitch-legend {
+  margin: 12px 4px 2px;
+  padding: 10px 12px 11px;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--text);
+  border-radius: 2px;
+  background: var(--surface-2);
+}
+
+.pitch-legend-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pitch-legend-title:hover { color: var(--text); }
+
+.pitch-legend-caret {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 4.5px solid transparent;
+  border-right: 4.5px solid transparent;
+  border-top: 5.5px solid currentColor;
+  transition: transform 0.2s ease;
+}
+
+.pitch-legend-hint { letter-spacing: 0; }
+
+/* 折叠态：只留标题行，列表收起，箭头转向 */
+.pitch-legend.is-collapsed .pitch-legend-title { margin-bottom: 0; }
+
+.pitch-legend.is-collapsed .pitch-legend-caret { transform: rotate(-90deg); }
+
+.pitch-legend.is-collapsed .pitch-legend-list { display: none; }
+
+.pitch-legend-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+}
+
+.pitch-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s ease;
+}
+
+/* 「显示图层」里对应的图层关掉时，这里的条目一起变淡，避免照着看不见的图层读图 */
+.pitch-legend-list li.is-off { opacity: 0.32; }
+
+.pitch-legend-list .swatch { margin-top: 0; }
+
+.pitch-legend-list em { font-style: normal; color: var(--muted); }
+
+.swatch-stack { display: flex; gap: 3px; }
+
+.pw-line {
+  fill: none;
+  stroke: var(--line);
+  stroke-opacity: 0.62;
+  stroke-width: 2.4;
+}
+
+.pw-third-label,
+.pw-axis-label {
+  text-anchor: middle;
+  font-family: var(--pitch-label-font);
+  paint-order: stroke fill;
+  stroke: var(--pitch-label-halo);
+  stroke-width: 2.4px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.pw-third-label {
+  fill: var(--pitch-label);
+  fill-opacity: 0.95;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  transform: translateX(0.08em);
+}
+
+.pw-axis-label {
+  fill-opacity: 0.88;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.pw-axis-label--home { fill: var(--pitch-label-home); }
+
+.pw-axis-label--away { fill: var(--pitch-label-away); }
+
+/* 首次渲染时球员直接落位，之后切换阵型才做位移动画 */
+.pw-pitch.is-animated .pw-player { transition: transform 540ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+
+.pw-player { cursor: pointer; }
+
+.pw-player:hover .pw-dot { stroke: var(--text); stroke-width: 4; }
+
+.pw-dot { fill: var(--dot); stroke: var(--dot-ring); stroke-width: 2; }
+
+.pw-num {
+  fill: var(--dot-text);
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-variant-numeric: tabular-nums;
+}
+
+.pw-role,
+.pw-note {
+  fill: var(--role-text);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--pitch);
+  stroke-linejoin: round;
+  stroke-opacity: 0.9;
+}
+
+.pw-role { font-weight: 600; }
+
+.is-compact .pw-role { display: none; }
+
+.pw-note { text-anchor: start; font-weight: 600; letter-spacing: 0.04em; }
+
+/* ---------- 跑动轨迹动画 ---------- */
+
+/* 形态约定：橙/蓝实线箭头＝人的跑动方向；浅色点线＋末端圆环＝球的线路 */
+.pw-flow { stroke-dasharray: none; }
+
+/* 主线之下的同色柔光与深色细影：给线路厚度，但不用模糊，避免糊成一团 */
+.pw-flow-casing { stroke-linejoin: round; }
+
+.pw-flow-shadow { stroke-linejoin: round; }
+
+/* 点线向前流动，配合沿线移动的空心小圆点演示球的线路 */
+.pw-flow-dots {
+  /* 点小、间距大，一眼区别于实线箭头 */
+  stroke-dasharray: 0.5 8;
+  stroke-linecap: round;
+  animation: pw-dash-flow 1.15s linear infinite;
+}
+
+@keyframes pw-dash-flow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -8.5; } }
+
+/* 箭头明暗：沿箭头方向由亮到暗，给实心箭头体积感，又不像白色高光那样冲淡本色 */
+.pw-shade-a { stop-color: #000; stop-opacity: 0; }
+.pw-shade-b { stop-color: #000; stop-opacity: 0.26; }
+
+.pw-runner { pointer-events: none; }
+
+/* 跑动点（彗星）配色：渐变取色统一走 CSS 变量，深浅主题共用一套渐变定义 */
+.pw-stop-att { stop-color: var(--tone-att); }
+.pw-stop-def { stop-color: var(--tone-def); }
+.pw-stop-lane { stop-color: var(--tone-lane); }
+
+/* 草皮柔影：整体下沉一点，彗核像「立」在草皮上，而不是贴上去的色块 */
+.pw-runner-shadow {
+  fill: none;
+  stroke: rgba(3, 20, 12, 0.32);
+}
+
+/* 彗尾：由核向后收细并渐隐，跑动点因此有了朝向与速度感，不再只是一枚圆环；
+   尾芯一道更亮的细线，尾巴不至于糊成一片 */
+.pw-runner-tail { stroke: none; }
+
+.pw-runner-core {
+  fill: none;
+  stroke: var(--tone-run, var(--dot));
+  stroke-opacity: 0.5;
+  stroke-linecap: round;
+}
+
+/* 彗核：径向高光的实心玻璃球（高光→本色），下沿再叠一道极淡暗面做体积；
+   深色细边把彗核从草皮、线路和球员圆点上「抠」出来，边界利落不发虚 */
+.pw-runner-head { stroke: none; }
+
+.pw-runner-shade { stroke: none; }
+
+.pw-runner-rim {
+  fill: none;
+  stroke: var(--arrow-rim);
+}
+
+/* 高光点：玻璃球的神就在这一点白上 */
+.pw-runner-glint {
+  fill: #fff;
+  fill-opacity: 0.72;
+}
+
+/* 外圈脉冲：贴着彗核极淡地扩散淡出，强调「正在移动」但不抢戏 */
+.pw-runner-halo {
+  fill: none;
+  stroke: var(--tone-run, var(--dot));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pw-runner-pulse 1.9s ease-out infinite;
+}
+
+@keyframes pw-runner-pulse {
+  0% { transform: scale(1.02); opacity: 0.32; }
+  65% { opacity: 0.08; }
+  100% { transform: scale(1.95); opacity: 0; }
+}
+
+.no-motion .pw-flow-dots { animation: none; }
+
+.no-motion .pw-runner { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pw-flow-dots { animation: none; }
+  .pw-runner { display: none; }
+  .pw-runner-halo { animation: none; }
+}
+
+/* ---------- 我的战术板 ---------- */
+
+.board-grid { display: grid; gap: 16px; }
+
+@media (min-width: 1040px) {
+  .board-grid { grid-template-columns: minmax(0, 1fr) 330px; align-items: start; }
+}
+
+.board-canvas { display: grid; gap: 12px; padding: 12px; }
+
+.board-toolbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+
+.tool-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+.tool-group-label { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.tool {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tool:hover { border-color: var(--accent); }
+
+.tool[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--text);
+  color: #fdf3dd;
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tool[aria-pressed="true"] { color: #1a0f08; }
+}
+
+.tone-btn {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+}
+
+.tone-btn[data-tone="att"] { background: var(--tone-att); }
+.tone-btn[data-tone="def"] { background: var(--tone-def); }
+.tone-btn[data-tone="lane"] { background: var(--tone-lane); }
+
+.tone-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
+
+#board-pitch { touch-action: none; }
+
+#board-pitch[data-tool="player"] { cursor: copy; }
+#board-pitch[data-tool="arrow"],
+#board-pitch[data-tool="line"],
+#board-pitch[data-tool="pen"],
+#board-pitch[data-tool="circle"] { cursor: crosshair; }
+#board-pitch[data-tool="erase"] { cursor: cell; }
+
+.board-player { cursor: grab; }
+
+.board-player .pw-dot { fill: var(--board-home); }
+
+.board-player.is-away .pw-dot { fill: var(--board-away); }
+
+.board-player.is-away .pw-num { fill: #10241a; }
+
+.board-player.is-selected .pw-dot { stroke: var(--accent); stroke-width: 4; }
+
+.board-shape { pointer-events: none; }
+
+.board-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 20;
+  pointer-events: stroke;
+}
+
+.board-side { display: grid; gap: 16px; align-content: start; }
+
+.board-block { display: grid; gap: 8px; }
+
+.board-block[hidden] { display: none; }
+
+.board-block .control-label { margin-bottom: 0; }
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.field input,
+.field select {
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+  max-width: 58%;
+  min-width: 0;
+}
+
+.board-roster {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.board-roster button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.board-roster button:hover { border-color: var(--accent); }
+
+.board-roster button.is-selected { border-color: var(--accent); background: var(--accent-soft); }
+
+.roster-dot {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid var(--dot-ring);
+}
+
+.roster-dot.is-home { background: var(--board-home); }
+.roster-dot.is-away { background: var(--board-away); }
+
+.button[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+.button[disabled]:hover {
+  border-color: var(--border);
+  color: var(--text);
+  transform: none;
+  box-shadow: 3px 3px 0 rgba(42, 33, 25, 0.16);
+}
+
+/* ---------- 战术简报 ---------- */
+
+.brief { display: grid; gap: 14px; }
+
+.brief-kicker {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.brief-title { font-size: 1.35rem; }
+
+.brief-tag { margin: 0; color: var(--text); font-size: 0.95rem; }
+
+.subhead {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.points {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.points dt {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.points dd { margin: 0; font-size: 0.88rem; }
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.stat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.stat-value { margin: 0; font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
+.stat-bar {
+  display: block;
+  height: 6px;
+  border-radius: 0;
+  background: var(--border);
+  overflow: hidden;
+  margin: 7px 0 6px;
+}
+
+.stat-bar i { display: block; height: 100%; border-radius: 0; background: var(--accent); }
+
+.stat-label { margin: 0; font-size: 0.76rem; color: var(--muted); }
+
+.duty {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--surface-2);
+}
+
+.duty-meta { margin: 0 0 4px; font-size: 0.78rem; color: var(--muted); }
+
+.duty-text { margin: 0; font-size: 0.88rem; }
+
+/* ---------- 并排对照 ---------- */
+
+.compare-grid { display: grid; gap: 16px; }
+
+@media (min-width: 900px) {
+  .compare-grid { grid-template-columns: 1fr 1fr; }
+  .metrics { grid-column: 1 / -1; }
+}
+
+.compare-card { display: grid; gap: 12px; align-content: start; }
+
+.compare-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+.compare-label {
+  margin: 0;
+  width: 28px; height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.selects { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.select { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+
+.select select {
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+}
+
+.compare-title { margin: 0; flex-basis: 100%; font-weight: 600; font-size: 0.95rem; }
+
+.metrics-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+
+.metrics-table caption { text-align: left; color: var(--muted); font-size: 0.82rem; padding-bottom: 8px; }
+
+.metrics-table th,
+.metrics-table td {
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.metrics-table thead th { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+.metrics-table tbody th { font-weight: 500; color: var(--muted); text-align: left; }
+
+.metrics-table td { text-align: right; font-variant-numeric: tabular-nums; }
+
+.metrics-table tbody tr:last-child th,
+.metrics-table tbody tr:last-child td { border-bottom: 0; }
+
+.metrics-table .is-lead { color: var(--accent); font-weight: 700; }
+
+.verdict { margin: 10px 0 0; font-size: 0.9rem; color: var(--text); }
+
+/* ---------- 打法小抄 ---------- */
+
+.style-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+
+.style-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.style-card h3 { font-size: 1.05rem; }
+
+.style-tag { margin: 0; font-size: 0.88rem; color: var(--muted); }
+
+.style-card ul { margin: 2px 0 0; padding-left: 18px; font-size: 0.86rem; color: var(--text); }
+
+.style-card li { margin-bottom: 4px; }
+
+.link-button {
+  justify-self: start;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- 图例 ---------- */
+
+.legend { display: grid; gap: 12px; }
+
+@media (min-width: 720px) {
+  .legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.legend-item { display: flex; gap: 12px; align-items: flex-start; }
+
+.legend-text { margin: 0; font-size: 0.9rem; }
+
+.legend-text span { color: var(--muted); }
+
+.swatch {
+  width: 26px;
+  height: 14px;
+  flex: none;
+  margin-top: 6px;
+  border-radius: 2px;
+}
+
+.swatch--att { background: var(--tone-att); }
+.swatch--def { background: var(--tone-def); }
+/* 球的线路：点线 + 末端空心圆点，与实线箭头（人的跑动）区分 */
+.swatch--lane {
+  position: relative;
+  height: 14px;
+  border: 0;
+  border-radius: 0;
+  background-image: radial-gradient(circle, var(--tone-lane) 1.6px, transparent 1.8px);
+  background-size: 8px 8px;
+  background-position: 2px 50%;
+  background-repeat: repeat-x;
+}
+
+.swatch--lane::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 1px;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border: 2px solid var(--tone-lane);
+  border-radius: 999px;
+}
+
+/* 跑动点（彗星）：实心玻璃球＋深色描边＋高光点，向后甩出渐隐拖尾；
+   颜色跟随所属线路（橙＝前压、蓝＝回收、青白＝球），靠拖尾与描边和球员 / 对手圆点区分 */
+.swatch--motion {
+  width: 30px;
+  height: 15px;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 4px 42%, #fff 1.2px, transparent 1.6px),
+    radial-gradient(circle at 4px 50%, var(--tone-att) 4px, rgba(3, 20, 12, 0.55) 4.1px 4.9px, transparent 5px),
+    radial-gradient(circle at 14px 42%, #fff 1.2px, transparent 1.6px),
+    radial-gradient(circle at 14px 50%, var(--tone-def) 4px, rgba(3, 20, 12, 0.55) 4.1px 4.9px, transparent 5px),
+    radial-gradient(circle at 24px 42%, #fff 1.2px, transparent 1.6px),
+    radial-gradient(circle at 24px 50%, var(--tone-lane) 4px, rgba(3, 20, 12, 0.55) 4.1px 4.9px, transparent 5px);
+}
+.swatch--zone { background: var(--tone-att); opacity: 0.28; }
+.swatch--zone-lane { background: var(--tone-lane); opacity: 0.28; }
+.swatch--zone-def { background: var(--tone-def); opacity: 0.28; }
+/* 竖向三分区：示意三块区域，不代表配色 */
+.swatch--thirds {
+  background: linear-gradient(to right, var(--accent-soft) 0 32%, transparent 32% 68%, var(--accent-soft) 68% 100%);
+  border: 1px solid var(--border);
+}
+
+.swatch--dot {
+  background: var(--dot);
+  border: 2px solid var(--dot-ring);
+  border-radius: 999px;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+}
+
+.swatch--dot-away {
+  background: var(--board-away);
+  border: 2px solid var(--dot-ring);
+  border-radius: 999px;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+}
+
+/* ---------- 页脚 ---------- */
+
+.site-footer {
+  margin-top: 34px;
+  padding: 22px 0 40px;
+  border-top: 3px solid var(--text);
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.site-footer p { margin: 0 0 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .pw-pitch.is-animated .pw-player, .chip { transition: none; }
+}
+
+@media print {
+  .site-header, .site-nav, .controls, .control-actions, .link-button, .skip-link,
+  .board-toolbar, .board-side { display: none; }
+  .studio-grid, .compare-grid { grid-template-columns: 1fr; }
+  .panel { box-shadow: none; }
+}

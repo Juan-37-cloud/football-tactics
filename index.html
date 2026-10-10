@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>足球战术解析 · 阵型与打法可视化</title>
+<meta name="description" content="足球战术解析静态站点：选择阵型与战术风格，实时预览球员站位、覆盖区域和跑动线路，并支持两套打法并排对照。">
+<meta name="theme-color" content="#efe2c6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171310" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23b8391f'/%3E%3Cpath d='M16 9l6 4.4-2.3 7.1h-7.4L10 13.4z' fill='%23f9f1dd'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#studio">跳到战术台</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+        <rect x="2.5" y="4.5" width="19" height="15" rx="2.5"></rect>
+        <path d="M12 4.5v15"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M2.5 9.5h3v5h-3"></path>
+        <path d="M21.5 9.5h-3v5h3"></path>
+      </svg>
+      <div>
+        <p class="brand-name">足球战术解析</p>
+        <p class="brand-sub">阵型 · 打法 · 空间</p>
+      </div>
+    </div>
+    <nav class="site-nav" aria-label="页面导航">
+      <a href="#studio">战术台</a>
+      <a href="#board">我的战术板</a>
+      <a href="#compare">并排对照</a>
+      <a href="#playbook">打法小抄</a>
+      <a href="#glossary">图例</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="hero-brand">
+      <span class="hero-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" focusable="false">
+          <circle class="hero-mark-frame" cx="32" cy="32" r="29"></circle>
+          <path class="hero-mark-line" d="M2 32h60"></path>
+          <circle class="hero-mark-line" cx="32" cy="32" r="8.5"></circle>
+          <path class="hero-mark-run" d="M9 48C21 43 27 25 41 18"></path>
+          <circle class="hero-mark-tip" cx="41" cy="18" r="2.6"></circle>
+        </svg>
+      </span>
+      <div class="hero-brand-copy">
+        <p class="hero-kicker">Football Tactics Board</p>
+        <h1 class="hero-title hero-wordmark">正宗蹴鞠</h1>
+        <span class="hero-rule" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="hero-photo" aria-hidden="true"></div>
+    <p class="hero-lead">先选阵型，再选战术风格，球场会实时重排球员站位，并画出覆盖区域与关键跑动线路。想看两种思路的差别，就到「并排对照」里把两套打法放在一起，用站位指标量化比较。想自己动手，就去「我的战术板」拖球员、画线路、导入阵型。</p>
+    <ul class="hero-stats">
+      <li><strong>9</strong> 种阵型</li>
+      <li><strong>8</strong> 种战术风格</li>
+      <li><strong>72</strong> 种组合</li>
+      <li>可自定义的战术板</li>
+      <li>纯静态页面，可离线打开</li>
+    </ul>
+  </section>
+
+  <section id="studio" class="wrap">
+    <h2 class="section-title">战术台</h2>
+    <p class="section-hint">左边一列选阵型，右边一列选打法。颜色绑定主体：橙色实线箭头是人的前压跑动，蓝色实线箭头是人的回收防守，浅色点线（末端带空心圆点）是球的传球线路，半透明区域是本方主动施压、重点保护或主要控球的地带。</p>
+
+    <div class="studio-grid">
+      <div class="panel controls">
+        <div class="control">
+          <p class="control-label" id="lbl-formation">阵型</p>
+          <div class="chips" role="group" aria-labelledby="lbl-formation" id="formation-chips"></div>
+        </div>
+        <div class="control">
+          <p class="control-label" id="lbl-style">战术风格</p>
+          <div class="chips" role="group" aria-labelledby="lbl-style" id="style-chips"></div>
+        </div>
+        <div class="control control--layers">
+          <p class="control-label" id="lbl-layers">显示图层</p>
+          <div class="toggles" role="group" aria-labelledby="lbl-layers">
+            <label class="toggle"><input type="checkbox" id="layer-zones" checked><span>施压 / 保护区域</span></label>
+            <label class="toggle"><input type="checkbox" id="layer-overlays" checked><span>跑动与传球线路</span></label>
+            <label class="toggle"><input type="checkbox" id="layer-thirds" checked><span>三区划分</span></label>
+            <label class="toggle"><input type="checkbox" id="layer-motion" checked><span>跑动轨迹动画</span></label>
+          </div>
+          <div class="control-actions">
+            <button type="button" class="button" id="random-combo">随机换个组合</button>
+            <button type="button" class="button" id="copy-link">复制当前组合链接</button>
+            <p class="hint" id="copy-hint" aria-live="polite"></p>
+          </div>
+        </div>
+        <noscript>
+          <p class="hint">这个页面的球场与图层由 JavaScript 渲染，请开启 JavaScript 后查看。</p>
+        </noscript>
+      </div>
+
+      <div class="panel pitch-card">
+        <figure class="pitch-figure">
+          <svg id="pitch" viewBox="0 0 1050 680" role="img" aria-labelledby="pitch-title">
+            <title id="pitch-title">阵型与战术站位示意图</title>
+            <desc>显示当前所选阵型与战术风格下的球员站位、覆盖区域和跑动线路。</desc>
+          </svg>
+          <figcaption class="pitch-caption">球场按 105 × 68 米归一化，左 → 右为本方进攻方向；站位与线路为战术示意，用于讲解思路。</figcaption>
+        </figure>
+        <div class="pitch-legend" id="pitch-legend" aria-label="球场速查图例">
+          <button type="button" class="pitch-legend-title" id="pitch-legend-toggle" aria-expanded="true" aria-controls="pitch-legend-list">
+            <span class="pitch-legend-caret" aria-hidden="true"></span>
+            <span class="pitch-legend-label">看图速查 <span class="pitch-legend-hint">· 完整说明见页末「图例」</span></span>
+          </button>
+          <ul class="pitch-legend-list" id="pitch-legend-list">
+            <li data-layer="overlays"><span class="swatch swatch--att" aria-hidden="true"></span><span>橙色实线箭头 <em>· 人的前压跑动</em></span></li>
+            <li data-layer="overlays"><span class="swatch swatch--def" aria-hidden="true"></span><span>蓝色实线箭头 <em>· 人的回收防守</em></span></li>
+            <li data-layer="overlays"><span class="swatch swatch--lane" aria-hidden="true"></span><span>青白点线与末端空心圆点 <em>· 球的线路</em></span></li>
+            <li data-layer="motion"><span class="swatch swatch--motion" aria-hidden="true"></span><span>沿线移动的彗星点 <em>· 颜色随线路</em></span></li>
+            <li data-layer="zones"><span class="swatch-stack" aria-hidden="true"><span class="swatch swatch--zone"></span><span class="swatch swatch--zone-def"></span><span class="swatch swatch--zone-lane"></span></span><span>半透明色块 <em>· 施压 / 保护 / 控球地带</em></span></li>
+            <li data-layer="thirds"><span class="swatch swatch--thirds" aria-hidden="true"></span><span>竖向三分区 <em>· 本方 / 中场 / 进攻三区</em></span></li>
+          </ul>
+        </div>
+      </div>
+
+      <aside class="panel brief">
+        <p class="brief-kicker">当前预览</p>
+        <h3 class="brief-title" id="brief-title">4-3-3 · 高位压迫</h3>
+        <p class="brief-tag" id="brief-tag"></p>
+        <div class="stats" id="brief-stats"></div>
+        <div class="duty">
+          <p class="duty-meta" id="brief-duty-meta">球场上的圆点</p>
+          <p class="duty-text" id="brief-duty">把鼠标移到球员身上，看这个位置在当前打法下的职责。</p>
+        </div>
+        <p class="subhead">战术要点</p>
+        <dl class="points" id="brief-points"></dl>
+      </aside>
+    </div>
+    <p class="sr-only" id="live-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="board" class="wrap">
+    <h2 class="section-title">我的战术板</h2>
+    <p class="section-hint">像用教练战术板一样操作：点一下球场放下球员，按住就能拖动；随手画箭头、连线、自由线和圆圈；一键导入现成阵型；还能给每名球员起名字。所有改动自动存在本机浏览器里，也可以导出成 JSON 带走。</p>
+
+    <div class="board-grid">
+      <div class="panel board-canvas">
+        <div class="board-toolbar">
+          <div class="tool-group" role="group" aria-label="绘制工具">
+            <button type="button" class="tool" data-tool="select" aria-pressed="true">选择 / 移动</button>
+            <button type="button" class="tool" data-tool="player" aria-pressed="false">放置球员</button>
+            <button type="button" class="tool" data-tool="arrow" aria-pressed="false">箭头</button>
+            <button type="button" class="tool" data-tool="line" aria-pressed="false">连线</button>
+            <button type="button" class="tool" data-tool="pen" aria-pressed="false">自由画线</button>
+            <button type="button" class="tool" data-tool="circle" aria-pressed="false">圆圈</button>
+            <button type="button" class="tool" data-tool="erase" aria-pressed="false">橡皮</button>
+          </div>
+          <div class="tool-group" role="group" aria-label="画笔颜色">
+            <span class="tool-group-label">画笔</span>
+            <button type="button" class="tone-btn" data-tone="att" aria-pressed="true" title="进攻橙" aria-label="进攻橙"></button>
+            <button type="button" class="tone-btn" data-tone="def" aria-pressed="false" title="防守蓝" aria-label="防守蓝"></button>
+          <button type="button" class="tone-btn" data-tone="lane" aria-pressed="false" title="线路青白" aria-label="线路青白"></button>
+          </div>
+        </div>
+
+        <figure class="pitch-figure">
+          <svg id="board-pitch" viewBox="0 0 1050 680" role="img" aria-labelledby="board-pitch-title">
+            <title id="board-pitch-title">我的战术板</title>
+            <desc>可自由放置球员、画箭头与自由线、圈出重点区域的战术板。</desc>
+          </svg>
+          <figcaption class="pitch-caption">「放置球员」点一下就落下一名球员，按住即拖动；「选择 / 移动」拖动球员，右侧面板可以改名字、号码和位置；线条类工具按住拖出轨迹即可。</figcaption>
+        </figure>
+        <p class="sr-only" id="board-status" role="status" aria-live="polite"></p>
+      </div>
+
+      <aside class="panel board-side">
+        <div class="board-block">
+          <p class="control-label">导入阵型</p>
+          <label class="select">阵型<select id="board-formation"></select></label>
+          <label class="select">风格<select id="board-style"></select></label>
+          <label class="toggle"><input type="checkbox" id="board-mirror" checked><span>同时镜像生成对手 11 人</span></label>
+          <div class="control-actions">
+            <button type="button" class="button" id="board-import">导入到战术板</button>
+            <button type="button" class="button" id="board-undo">撤销</button>
+            <button type="button" class="button" id="board-clear">清空</button>
+          </div>
+        </div>
+
+        <div class="board-block" id="board-player-form" hidden>
+          <p class="control-label">选中球员</p>
+          <label class="field">号码<input type="number" id="bp-number" min="1" max="99" step="1" inputmode="numeric"></label>
+          <label class="field">姓名<input type="text" id="bp-name" maxlength="12" placeholder="例如 张伟"></label>
+          <label class="field">位置<select id="bp-role"></select></label>
+          <label class="field">队伍<select id="bp-side"><option value="home">我方</option><option value="away">对手</option></select></label>
+          <div class="control-actions">
+            <button type="button" class="button" id="bp-delete">删除球员</button>
+          </div>
+        </div>
+
+        <div class="board-block">
+          <p class="control-label">球员名单 <span class="hint" id="board-count"></span></p>
+          <ul class="board-roster" id="board-roster"></ul>
+        </div>
+
+        <div class="board-block">
+          <p class="control-label">保存与分享</p>
+          <div class="control-actions">
+            <button type="button" class="button" id="board-export">导出 JSON</button>
+            <button type="button" class="button" id="board-import-json">导入 JSON</button>
+          </div>
+          <input type="file" id="board-file" accept="application/json,.json" hidden>
+          <p class="hint" id="board-hint">改动会自动保存在本机浏览器里；换电脑时用「导出 JSON」把战术板带走。</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="compare" class="wrap">
+    <h2 class="section-title">并排对照</h2>
+    <p class="section-hint">A 和 B 各自选阵型与风格，两块球场同时重排，下面的指标会把站位高低、宽度利用和阵线纵深的差别算出来。</p>
+
+    <div class="compare-grid">
+      <div class="panel compare-card">
+        <div class="compare-head">
+          <p class="compare-label" aria-hidden="true">A</p>
+          <div class="selects">
+            <label class="select">阵型<select id="cmp-a-formation"></select></label>
+            <label class="select">风格<select id="cmp-a-style"></select></label>
+          </div>
+          <p class="compare-title" id="cmp-a-title"></p>
+        </div>
+        <svg id="pitch-a" viewBox="0 0 1050 680" role="img" aria-labelledby="pitch-a-title">
+          <title id="pitch-a-title">对照方案 A 的阵型与战术站位</title>
+          <desc>显示对照方案 A 所选阵型与战术风格下的球员站位、覆盖区域和跑动线路。</desc>
+        </svg>
+      </div>
+
+      <div class="panel compare-card">
+        <div class="compare-head">
+          <p class="compare-label" aria-hidden="true">B</p>
+          <div class="selects">
+            <label class="select">阵型<select id="cmp-b-formation"></select></label>
+            <label class="select">风格<select id="cmp-b-style"></select></label>
+          </div>
+          <p class="compare-title" id="cmp-b-title"></p>
+        </div>
+        <svg id="pitch-b" viewBox="0 0 1050 680" role="img" aria-labelledby="pitch-b-title">
+          <title id="pitch-b-title">对照方案 B 的阵型与战术站位</title>
+          <desc>显示对照方案 B 所选阵型与战术风格下的球员站位、覆盖区域和跑动线路。</desc>
+        </svg>
+      </div>
+
+      <div class="panel metrics">
+        <h3 class="brief-title">站位指标对比</h3>
+        <table class="metrics-table">
+          <caption>数值取自十名非门将球员的归一化站位，标绿的一侧数值更大。</caption>
+          <thead>
+            <tr><th scope="col">指标</th><th scope="col">A</th><th scope="col">B</th></tr>
+          </thead>
+          <tbody id="compare-body"></tbody>
+        </table>
+        <p class="verdict" id="compare-verdict"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="playbook" class="wrap">
+    <h2 class="section-title">打法小抄</h2>
+    <p class="section-hint">八种战术风格的核心思路、进攻方式与主要风险，点一下可以直接跳到战术台预览。</p>
+    <div class="style-cards" id="style-cards"></div>
+  </section>
+
+  <section id="glossary" class="wrap">
+    <h2 class="section-title">图例</h2>
+    <p class="section-hint">图上每种颜色和线型都有固定含义，对照着看就不会读错。</p>
+    <div class="panel legend">
+      <div class="legend-item">
+        <span class="swatch swatch--att" aria-hidden="true"></span>
+        <p class="legend-text">橙色实线箭头与区域 <span>· 我方球员的前压跑动：逼抢、前插、给做球者让位</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--def" aria-hidden="true"></span>
+        <p class="legend-text">蓝色实线箭头与区域 <span>· 我方球员的回收跑动：退防、协防、压缩空间</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--lane" aria-hidden="true"></span>
+        <p class="legend-text">浅色点线与末端圆点 <span>· 球的线路：传球、传中与打身后，线偏青白以便和橙色区分</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--motion" aria-hidden="true"></span>
+        <p class="legend-text">沿线移动的彗星点 <span>· 实心玻璃球带渐隐拖尾，颜色随所属线路变化，演示球员与球的移动</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--zone" aria-hidden="true"></span>
+        <p class="legend-text">橙色半透明色块 <span>· 本方主动施压的地带</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--zone-def" aria-hidden="true"></span>
+        <p class="legend-text">蓝色半透明色块 <span>· 本方重点保护与回收的地带</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--zone-lane" aria-hidden="true"></span>
+        <p class="legend-text">青色半透明色块 <span>· 主要控球与横向转移的地带</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--dot" aria-hidden="true"></span>
+        <p class="legend-text">白色实心圆点 <span>· 我方球员，圆点里的数字是示意球衣号</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--dot-away" aria-hidden="true"></span>
+        <p class="legend-text">琥珀色实心圆点 <span>· 对手球员（实心，与空心轨迹点区分）；点击「导入到战术板」时会自动镜像生成</span></p>
+      </div>
+      <div class="legend-item">
+        <span class="swatch swatch--thirds" aria-hidden="true"></span>
+        <p class="legend-text">竖向三分区 <span>· 本方三区 / 中场三区 / 进攻三区</span></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>数据说明：阵型站位、覆盖区域与跑动线路都是战术示意，用于讲解思路，并非特定球队的真实比赛数据。</p>
+    <p>实现方式：一个 HTML 页面加五份本地资源（样式表与四个脚本），没有后端、没有第三方依赖，双击 index.html 就能离线查看。</p>
+  </div>
+</footer>
+
+<script src="assets/tactics-data.js"></script>
+<script src="assets/tactics-pitch.js"></script>
+<script src="assets/tactics-board.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
